@@ -109,11 +109,36 @@
     margin-bottom: 24px;
   }
 
+  .chart-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
   .chart-card-title {
     font-size: 15px;
     font-weight: 700;
     color: var(--text-heading);
-    margin-bottom: 16px;
+  }
+  .chart-legend {
+    display: flex;
+    gap: 12px;
+  }
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    display: inline-block;
   }
 
   .chart-wrapper {
@@ -288,7 +313,14 @@
 
 {% if chart_data %}
   <div class="chart-card">
-    <div class="chart-card-title">股價走勢（近 {{ chart_data.candles|length }} 交易日 + 60MA）</div>
+    <div class="chart-card-header">
+      <div class="chart-card-title">股價走勢（近一年）</div>
+      <div class="chart-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#FE9B0E"></span>5MA</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#3A70E2"></span>20MA</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#4318FF"></span>60MA</span>
+      </div>
+    </div>
     <div class="chart-wrapper">
       <div id="price-chart"></div>
       <div id="price-chart-tooltip" class="chart-tooltip"></div>
@@ -410,14 +442,32 @@
   });
   candleSeries.setData(chartData.candles);
 
-  var maSeries = chart.addLineSeries({
+  var ma5Series = chart.addLineSeries({
+    color: '#FE9B0E',
+    lineWidth: 1,
+    crosshairMarkerVisible: false,
+    lastValueVisible: false,
+    priceLineVisible: false,
+  });
+  ma5Series.setData(chartData.ma5);
+
+  var ma20Series = chart.addLineSeries({
+    color: '#3A70E2',
+    lineWidth: 1,
+    crosshairMarkerVisible: false,
+    lastValueVisible: false,
+    priceLineVisible: false,
+  });
+  ma20Series.setData(chartData.ma20);
+
+  var ma60Series = chart.addLineSeries({
     color: '#4318FF',
     lineWidth: 2,
     crosshairMarkerVisible: false,
     lastValueVisible: false,
     priceLineVisible: false,
   });
-  maSeries.setData(chartData.ma60);
+  ma60Series.setData(chartData.ma60);
 
   var volumeSeries = chart.addHistogramSeries({
     priceScaleId: 'volume',
@@ -427,6 +477,8 @@
     scaleMargins: { top: 0.78, bottom: 0 },
   });
   volumeSeries.setData(chartData.volumes);
+
+  chart.timeScale().fitContent();
 
   function timeToDateString(t) {
     if (typeof t === 'string') return t;

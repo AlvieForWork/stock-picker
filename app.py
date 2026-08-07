@@ -20,16 +20,17 @@ def fetch_daily_bars(ticker: str):
     回傳 (bars, error_message)。成功時 error_message 為 None。
     bars 是由舊到新排序的 list，每筆為 {"t","o","h","l","c","v"}（t 是 "YYYY-MM-DD"）。
 
-    往回抓約 260 個日曆天，是為了讓圖表上「每一根蠟燭」都能算出自己的 60MA
-    （最早顯示的那根蠟燭，也需要往前 60 個交易日的資料），跟 90 根蠟燭合起來
-    大約要 150 個交易日，260 個日曆天含假日週末後綽綽有餘。
+    往回抓約 500 個日曆天，是為了讓圖表能顯示「近一年」的蠟燭，且每一根都能算出
+    自己的 5/20/60MA（最早顯示的那根蠟燭，也需要往前 60 個交易日的資料）。
+    一年約 252 個交易日，加上 60 天的均線緩衝約需 312 個交易日，
+    換算日曆天（含假日週末）約 450 天，500 天留了餘裕。
     這仍然只是同一支 API 呼叫，只是放寬日期區間，不會增加呼叫次數。
     """
     end = date.today()
-    start = end - timedelta(days=260)
+    start = end - timedelta(days=500)
 
     url = AGGS_URL.format(ticker=ticker, start=start.isoformat(), end=end.isoformat())
-    params = {"adjusted": "true", "sort": "asc", "limit": 300, "apiKey": API_KEY}
+    params = {"adjusted": "true", "sort": "asc", "limit": 600, "apiKey": API_KEY}
 
     try:
         resp = requests.get(url, params=params, timeout=10)

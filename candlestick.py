@@ -139,22 +139,24 @@ def analyze_latest_candle(bars):
     }
 
 
-def build_chart_series(bars, display_count=90, ma_window=60):
+def build_chart_series(bars, display_count=252, ma_windows=(5, 20, 60)):
     """
-    把日 K 資料整理成畫圖用的三組序列：蠟燭、成交量、60MA。
+    把日 K 資料整理成畫圖用的序列：蠟燭、成交量、5/20/60MA。
 
     bars: 由舊到新排序，每筆包含 t（"YYYY-MM-DD"）、o、h、l、c、v。
-    只顯示最後 display_count 根蠟燭，但每一根顯示出來的蠟燭都要有自己的
-    60MA 可以畫，所以起點會往前抓到「有完整 60 天可以算 MA」的地方。
+    只顯示最後 display_count 根蠟燭（預設 252，約近一年交易日），但每一根
+    顯示出來的蠟燭都要有自己的均線可以畫，所以起點會往前抓到
+    「連最長的均線（60MA）都有完整資料」的地方。
     """
-    if len(bars) < ma_window:
+    max_window = max(ma_windows)
+    if len(bars) < max_window:
         start_index = 0
     else:
-        start_index = max(ma_window - 1, len(bars) - display_count)
+        start_index = max(max_window - 1, len(bars) - display_count)
 
     candles = []
     volumes = []
-    ma60 = []
+    ma_series = {w: [] for w in ma_windows}
 
     for i in range(start_index, len(bars)):
         bar = bars[i]
@@ -171,9 +173,16 @@ def build_chart_series(bars, display_count=90, ma_window=60):
             "value": bar["v"],
             "color": CHART_UP_COLOR if is_up else CHART_DOWN_COLOR,
         })
-        if i >= ma_window - 1:
-            window = bars[i - ma_window + 1: i + 1]
-            avg = sum(b["c"] for b in window) / ma_window
-            ma60.append({"time": bar["t"], "value": round(avg, 4)})
+        for w in ma_windows:
+            if i >= w - 1:
+                window = bars[i - w + 1: i + 1]
+                avg = sum(b["c"] for b in window) / w
+                ma_series[w].append({"time": bar["t"], "value": round(avg, 4)})
 
-    return {"candles": candles, "volumes": volumes, "ma60": ma60}
+    return {
+        "candles": candles,
+        "volumes": volumes,
+        "ma5": ma_series[5],
+        "ma20": ma_series[20],
+        "ma60": ma_series[60],
+    }
