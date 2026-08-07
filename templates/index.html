@@ -18,12 +18,15 @@
     --shadow-card: 0 18px 40px -10px rgba(112, 144, 176, 0.18);
     --radius-card: 20px;
     --radius-field: 12px;
-    --pill-red-bg: #FDEDED;
-    --pill-red-text: #E31A1A;
-    --pill-green-bg: #E6F7EE;
+    /* 語意色階（E8D 設計系統）：紅漲＝Error、綠跌＝Success、高檔警示＝Warning、其他型態描述＝Info */
+    --pill-red-bg: #FFEBEE;
+    --pill-red-text: #EC2D30;
+    --pill-green-bg: #E5F5EC;
     --pill-green-text: #0C9D61;
-    --pill-purple-bg: #F0EBFF;
-    --pill-purple-text: #4318FF;
+    --pill-warning-bg: #FFF7E1;
+    --pill-warning-text: #FE9B0E;
+    --pill-info-bg: #E4F2FF;
+    --pill-info-text: #3A70E2;
   }
 
   * { box-sizing: border-box; }
@@ -166,7 +169,8 @@
   }
   .pill-red { background: var(--pill-red-bg); color: var(--pill-red-text); }
   .pill-green { background: var(--pill-green-bg); color: var(--pill-green-text); }
-  .pill-purple { background: var(--pill-purple-bg); color: var(--pill-purple-text); }
+  .pill-warning { background: var(--pill-warning-bg); color: var(--pill-warning-text); }
+  .pill-info { background: var(--pill-info-bg); color: var(--pill-info-text); }
 
   .tag-explain {
     font-size: 14px;
@@ -260,8 +264,10 @@
             <span class="pill pill-red">{{ item.tag }}</span>
           {% elif '黑K' in item.tag %}
             <span class="pill pill-green">{{ item.tag }}</span>
+          {% elif item.tag == '高檔' %}
+            <span class="pill pill-warning">{{ item.tag }}</span>
           {% else %}
-            <span class="pill pill-purple">{{ item.tag }}</span>
+            <span class="pill pill-info">{{ item.tag }}</span>
           {% endif %}
           <p class="tag-explain">{{ item.explanation }}</p>
         </div>
@@ -352,10 +358,10 @@
   });
 
   var candleSeries = chart.addCandlestickSeries({
-    upColor: '#E31A1A',
+    upColor: '#EC2D30',
     downColor: '#0C9D61',
     borderVisible: false,
-    wickUpColor: '#E31A1A',
+    wickUpColor: '#EC2D30',
     wickDownColor: '#0C9D61',
   });
   candleSeries.priceScale().applyOptions({

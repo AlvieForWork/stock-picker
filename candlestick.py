@@ -22,7 +22,8 @@ TAG_EXPLANATIONS = {
 }
 
 # 紅漲綠跌，跟型態標籤的顏色（.pill-red / .pill-green）一致。
-CHART_UP_COLOR = "#E31A1A"
+# 色值取自 E8D 設計系統的語意色階：紅漲＝Error 700，綠跌＝Success 700。
+CHART_UP_COLOR = "#EC2D30"
 CHART_DOWN_COLOR = "#0C9D61"
 
 
