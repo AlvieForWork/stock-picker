@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}美股選股輔助{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-page: #F4F7FE;
+    --bg-card: #FFFFFF;
+    --primary: #4318FF;
+    --primary-dark: #3311D6;
+    --primary-soft: #EFEBFF;
+    --text-heading: #1B2559;
+    --text-muted: #A3AED0;
+    --border-soft: #E9ECEF;
+    --shadow-card: 0 18px 40px -10px rgba(112, 144, 176, 0.18);
+    --radius-card: 20px;
+    --radius-field: 12px;
+    /* 語意色階（E8D 設計系統）：紅漲＝Error、綠跌＝Success、高檔警示＝Warning、其他型態描述＝Info */
+    --pill-red-bg: #FFEBEE;
+    --pill-red-text: #EC2D30;
+    --pill-green-bg: #E5F5EC;
+    --pill-green-text: #0C9D61;
+    --pill-warning-bg: #FFF7E1;
+    --pill-warning-text: #FE9B0E;
+    --pill-info-bg: #E4F2FF;
+    --pill-info-text: #3A70E2;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: "DM Sans", -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+    margin: 0;
+    padding: 0 20px 48px;
+    color: var(--text-heading);
+    background: var(--bg-page);
+  }
+
+  /* 內容容器：預設 900px，需要放寬表格的頁面加 .container-wide */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .container-wide {
+    max-width: 1100px;
+  }
+
+  /* ── 導覽列 ── */
+  .site-nav {
+    background: var(--bg-card);
+    box-shadow: var(--shadow-card);
+    border-radius: 9999px;
+    padding: 8px;
+    margin: 24px auto 28px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .nav-brand {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-heading);
+    padding: 10px 16px;
+    white-space: nowrap;
+  }
+  .nav-links {
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  .nav-link {
+    padding: 10px 16px;
+    border-radius: 9999px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .nav-link:hover {
+    background: var(--bg-page);
+    color: var(--text-heading);
+  }
+  .nav-link.is-active {
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  /* ── 頁首 ── */
+  header.page-header {
+    margin-bottom: 24px;
+  }
+  .eyebrow {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin: 0;
+  }
+  .data-date {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--bg-card);
+    border-radius: 9999px;
+    padding: 4px 12px;
+  }
+
+  /* ── 卡片 ── */
+  .card {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+
+  .error {
+    background: var(--pill-red-bg);
+    color: var(--pill-red-text);
+    font-weight: 500;
+    padding: 14px 18px;
+    border-radius: var(--radius-field);
+    margin-bottom: 20px;
+  }
+
+  /* ── 型態標籤 ── */
+  .pill {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .pill-red { background: var(--pill-red-bg); color: var(--pill-red-text); }
+  .pill-green { background: var(--pill-green-bg); color: var(--pill-green-text); }
+  .pill-warning { background: var(--pill-warning-bg); color: var(--pill-warning-text); }
+  .pill-info { background: var(--pill-info-bg); color: var(--pill-info-text); }
+
+  /* 漲跌文字色：紅漲綠跌，跟 K 棒圖一致 */
+  .val-up { color: var(--pill-red-text); font-weight: 700; }
+  .val-down { color: var(--pill-green-text); font-weight: 700; }
+  .val-flat { color: var(--text-muted); font-weight: 700; }
+
+  footer.site-footer {
+    max-width: 900px;
+    margin: 32px auto 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-soft);
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* 施工中的佔位頁 */
+  .placeholder {
+    text-align: center;
+    padding: 56px 28px;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  @media (max-width: 640px) {
+    body {
+      padding: 0 14px 24px;
+    }
+    .site-nav {
+      margin: 14px auto 20px;
+      border-radius: var(--radius-card);
+      padding: 6px;
+    }
+    .nav-brand {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    .nav-link {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    h1 {
+      font-size: 21px;
+    }
+    .card {
+      padding: 18px;
+      border-radius: 16px;
+    }
+  }
+
+  {% block styles %}{% endblock %}
+</style>
+</head>
+<body>
+
+<div class="container {% block container_class %}{% endblock %}">
+
+  <nav class="site-nav">
+    <div class="nav-brand">美股選股輔助</div>
+    <div class="nav-links">
+      <a class="nav-link {% if active_page == 'home' %}is-active{% endif %}" href="/">首頁</a>
+      <a class="nav-link {% if active_page == 'stock' %}is-active{% endif %}" href="/stock">個股分析</a>
+      <a class="nav-link {% if active_page == 'market' %}is-active{% endif %}" href="/market">大盤與費半</a>
+      <a class="nav-link {% if active_page == 'sector' %}is-active{% endif %}" href="/sector">產業追蹤</a>
+      <a class="nav-link {% if active_page == 'strength' %}is-active{% endif %}" href="/strength">強弱排行</a>
+    </div>
+  </nav>
+
+  {% block content %}{% endblock %}
+
+</div>
+
+<footer class="site-footer">
+  本工具僅為技術面資訊參考，非投資建議，不保證準確性。
+</footer>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

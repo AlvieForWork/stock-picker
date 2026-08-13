@@ -1,63 +1,8 @@
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>美股 K 棒型態判斷</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg-page: #F4F7FE;
-    --bg-card: #FFFFFF;
-    --primary: #4318FF;
-    --primary-dark: #3311D6;
-    --text-heading: #1B2559;
-    --text-muted: #A3AED0;
-    --border-soft: #E9ECEF;
-    --shadow-card: 0 18px 40px -10px rgba(112, 144, 176, 0.18);
-    --radius-card: 20px;
-    --radius-field: 12px;
-    /* 語意色階（E8D 設計系統）：紅漲＝Error、綠跌＝Success、高檔警示＝Warning、其他型態描述＝Info */
-    --pill-red-bg: #FFEBEE;
-    --pill-red-text: #EC2D30;
-    --pill-green-bg: #E5F5EC;
-    --pill-green-text: #0C9D61;
-    --pill-warning-bg: #FFF7E1;
-    --pill-warning-text: #FE9B0E;
-    --pill-info-bg: #E4F2FF;
-    --pill-info-text: #3A70E2;
-  }
+{% extends "base.html" %}
+{% block title %}個股技術分析 — 美股選股輔助{% endblock %}
 
-  * { box-sizing: border-box; }
-
-  body {
-    font-family: "DM Sans", -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
-    max-width: 900px;
-    margin: 48px auto;
-    padding: 0 20px;
-    color: var(--text-heading);
-    background: var(--bg-page);
-  }
-
-  header {
-    margin-bottom: 24px;
-  }
-  .eyebrow {
-    font-size: 13px;
-    color: var(--text-muted);
-    font-weight: 500;
-    margin-bottom: 4px;
-  }
-  h1 {
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    margin: 0;
-  }
-
-  form {
+{% block styles %}
+  form.search-form {
     display: flex;
     gap: 10px;
     margin-bottom: 28px;
@@ -91,23 +36,6 @@
     transition: background 0.15s ease;
   }
   button:hover { background: var(--primary-dark); }
-
-  .error {
-    background: var(--pill-red-bg);
-    color: var(--pill-red-text);
-    font-weight: 500;
-    padding: 14px 18px;
-    border-radius: var(--radius-field);
-    margin-bottom: 20px;
-  }
-
-  .result-card, .chart-card {
-    background: var(--bg-card);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
-    padding: 28px;
-    margin-bottom: 24px;
-  }
 
   .chart-card-header {
     display: flex;
@@ -185,26 +113,12 @@
     gap: 14px;
     margin-bottom: 20px;
   }
-  .pattern-item { }
-  .pill {
-    display: inline-block;
-    padding: 6px 14px;
-    border-radius: 9999px;
-    font-size: 13px;
-    font-weight: 700;
-  }
-  .pill-red { background: var(--pill-red-bg); color: var(--pill-red-text); }
-  .pill-green { background: var(--pill-green-bg); color: var(--pill-green-text); }
-  .pill-warning { background: var(--pill-warning-bg); color: var(--pill-warning-text); }
-  .pill-info { background: var(--pill-info-bg); color: var(--pill-info-text); }
-
   .tag-explain {
     font-size: 14px;
     color: #555;
     line-height: 1.7;
     margin: 8px 0 0;
   }
-
   .tendency-note {
     font-size: 13px;
     color: var(--text-muted);
@@ -213,7 +127,6 @@
     margin-top: 4px;
     border-top: 1px solid var(--border-soft);
   }
-
   .metrics-title {
     font-size: 13px;
     font-weight: 700;
@@ -222,7 +135,6 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-
   .metrics-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -245,25 +157,8 @@
     color: var(--text-heading);
   }
 
-  footer {
-    margin-top: 32px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-soft);
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.6;
-  }
-
-  /* 手機尺寸：縮小留白、數值格子改 2 欄、圖表降低高度 */
   @media (max-width: 640px) {
-    body {
-      margin: 24px auto;
-      padding: 0 14px;
-    }
-    h1 {
-      font-size: 21px;
-    }
-    form {
+    form.search-form {
       gap: 6px;
       padding: 6px;
     }
@@ -277,10 +172,6 @@
       font-size: 14px;
       white-space: nowrap;
     }
-    .result-card, .chart-card {
-      padding: 18px;
-      border-radius: 16px;
-    }
     #price-chart {
       height: 300px;
     }
@@ -293,16 +184,18 @@
       min-width: 100px;
     }
   }
-</style>
-</head>
-<body>
+{% endblock %}
 
-<header>
+{% block content %}
+<header class="page-header">
   <div class="eyebrow">選股輔助 / 單檔查詢</div>
-  <h1>美股 K 棒型態判斷</h1>
+  <h1>個股技術分析</h1>
+  {% if data_date %}
+    <div class="data-date">資料日期：{{ data_date }}（收盤資料，非即時報價）</div>
+  {% endif %}
 </header>
 
-<form method="post">
+<form method="post" class="search-form">
   <input type="text" name="ticker" placeholder="輸入美股代號，例如 AAPL" value="{{ ticker }}" autofocus>
   <button type="submit">查詢</button>
 </form>
@@ -312,7 +205,7 @@
 {% endif %}
 
 {% if chart_data %}
-  <div class="chart-card">
+  <div class="card">
     <div class="chart-card-header">
       <div class="chart-card-title">股價走勢（近一年）</div>
       <div class="chart-legend">
@@ -329,7 +222,7 @@
 {% endif %}
 
 {% if result %}
-  <div class="result-card">
+  <div class="card">
     <div class="pattern-list">
       {% for item in result.tag_explanations %}
         <div class="pattern-item">
@@ -397,11 +290,9 @@
     </div>
   </div>
 {% endif %}
+{% endblock %}
 
-<footer>
-  本工具僅為技術型態輔助判斷，非投資建議，不保證準確性，投資請自行評估風險。
-</footer>
-
+{% block scripts %}
 {% if chart_data %}
 <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 <script>
@@ -520,6 +411,4 @@
 })();
 </script>
 {% endif %}
-
-</body>
-</html>
+{% endblock %}

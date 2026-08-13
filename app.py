@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request
 
 from candlestick import analyze_latest_candle, build_chart_series
+from market_data import get_market_overview
 
 load_dotenv()
 
@@ -13,6 +14,26 @@ API_KEY = os.getenv("POLYGON_API_KEY")
 AGGS_URL = "https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/day/{start}/{end}"
 
 app = Flask(__name__)
+
+
+@app.template_filter("pct_text")
+def pct_text(value):
+    """把漲跌幅數字排版成 +1.23% / -0.45%；資料不足顯示破折號而不是 0。"""
+    if value is None:
+        return "—"
+    return f"{value:+.2f}%"
+
+
+@app.template_filter("pct_class")
+def pct_class(value):
+    """漲跌顏色 class：紅漲綠跌，跟 K 棒圖一致。"""
+    if value is None:
+        return "val-flat"
+    if value > 0:
+        return "val-up"
+    if value < 0:
+        return "val-down"
+    return "val-flat"
 
 
 def fetch_daily_bars(ticker: str):
@@ -65,12 +86,13 @@ def fetch_daily_bars(ticker: str):
     return bars, None
 
 
-@app.route("/", methods=["GET", "POST"])
-def index():
+@app.route("/stock", methods=["GET", "POST"])
+def stock_analysis():
     result = None
     chart_data = None
     error = None
     ticker = ""
+    data_date = None
 
     if request.method == "POST":
         ticker = request.form.get("ticker", "").strip().upper()
@@ -87,11 +109,63 @@ def index():
                 try:
                     result = analyze_latest_candle(bars)
                     chart_data = build_chart_series(bars)
+                    data_date = bars[-1]["t"]
                 except ValueError as e:
                     error = str(e)
 
     return render_template(
-        "index.html", result=result, chart_data=chart_data, error=error, ticker=ticker
+        "stock_analysis.html",
+        active_page="stock",
+        result=result,
+        chart_data=chart_data,
+        error=error,
+        ticker=ticker,
+        data_date=data_date,
+    )
+
+
+@app.route("/")
+def home():
+    return render_template(
+        "placeholder.html",
+        active_page="home",
+        eyebrow="總覽",
+        page_title="首頁",
+        note="之後會彙整大盤、費半與產業強弱的重點數字。",
+    )
+
+
+@app.route("/market")
+def market():
+    items, data_date, errors = get_market_overview()
+    return render_template(
+        "market.html",
+        active_page="market",
+        items=items,
+        data_date=data_date,
+        errors=errors,
+    )
+
+
+@app.route("/sector")
+def sector():
+    return render_template(
+        "placeholder.html",
+        active_page="sector",
+        eyebrow="產業面",
+        page_title="產業追蹤",
+        note="之後會用 11 檔產業 ETF 追蹤各產業近期表現。",
+    )
+
+
+@app.route("/strength")
+def strength():
+    return render_template(
+        "placeholder.html",
+        active_page="strength",
+        eyebrow="產業面",
+        page_title="強弱排行",
+        note="之後會把產業 ETF 依近期漲跌幅排序，看出最強與最弱的族群。",
     )
 
 

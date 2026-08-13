@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}大盤與費半 — 美股選股輔助{% endblock %}
+
+{% block styles %}
+  .market-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .market-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .market-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .market-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-heading);
+  }
+  .market-code {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge-index { background: var(--pill-info-bg); color: var(--pill-info-text); }
+  .badge-etf { background: var(--bg-page); color: var(--text-muted); }
+
+  /* 主角：最新收盤價與當日漲跌，字級明顯大於其他數字 */
+  .market-price-group {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .market-price {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .market-day-change {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .market-chart {
+    width: 100%;
+    height: 200px;
+    margin-bottom: 18px;
+  }
+
+  .change-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .change-tile {
+    background: var(--bg-page);
+    border-radius: var(--radius-field);
+    padding: 12px 16px;
+  }
+  .change-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .change-value {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .card-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-soft);
+  }
+
+  .source-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 640px) {
+    .market-price { font-size: 25px; }
+    .market-chart { height: 160px; }
+    .change-row { gap: 8px; }
+    .change-tile { padding: 10px 12px; }
+  }
+{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <div class="eyebrow">指數追蹤</div>
+  <h1>大盤與費半</h1>
+  {% if data_date %}
+    <div class="data-date">資料日期：{{ data_date }}（收盤資料，非即時報價）</div>
+  {% endif %}
+</header>
+
+{% if errors %}
+  <div class="error">
+    {% for e in errors %}<div>{{ e }}</div>{% endfor %}
+  </div>
+{% endif %}
+
+<div class="source-note">
+  那斯達克與費半用的是<strong>真實指數</strong>；標普500 因免費方案不含指數授權，改用 <strong>SPY ETF</strong> 替代。
+  各卡片右上角都有標示。漲跌顏色依台股習慣：<span class="val-up">紅漲</span>／<span class="val-down">綠跌</span>。
+</div>
+
+{% for item in items %}
+  <div class="card">
+    <div class="market-card-head">
+      <div class="market-title-group">
+        <div class="market-name-row">
+          <span class="market-name">{{ item.short }}</span>
+          {% if item.kind == 'index' %}
+            <span class="badge badge-index">{{ item.kind_label }}</span>
+          {% else %}
+            <span class="badge badge-etf">{{ item.kind_label }}</span>
+          {% endif %}
+        </div>
+        <div class="market-code">{{ item.name }}（{{ item.ticker }}）</div>
+      </div>
+
+      {% if item.available %}
+        <div class="market-price-group">
+          <span class="market-price">{{ "{:,.2f}".format(item.close) }}</span>
+          <span class="market-day-change {{ item.day_pct | pct_class }}">{{ item.day_pct | pct_text }}</span>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if item.available %}
+      <div class="market-chart" id="chart-{{ loop.index }}"
+           data-series='{{ item.series | tojson }}'></div>
+
+      <div class="change-row">
+        <div class="change-tile">
+          <div class="change-label">今日</div>
+          <div class="change-value {{ item.day_pct | pct_class }}">{{ item.day_pct | pct_text }}</div>
+        </div>
+        <div class="change-tile">
+          <div class="change-label">近 1 週</div>
+          <div class="change-value {{ item.week_pct | pct_class }}">{{ item.week_pct | pct_text }}</div>
+        </div>
+        <div class="change-tile">
+          <div class="change-label">近 1 月</div>
+          <div class="change-value {{ item.month_pct | pct_class }}">{{ item.month_pct | pct_text }}</div>
+        </div>
+      </div>
+    {% else %}
+      <div class="placeholder">目前抓不到這個標的的資料。</div>
+    {% endif %}
+
+    {% if item.note %}
+      <div class="card-note">{{ item.note }}</div>
+    {% endif %}
+  </div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+(function () {
+  document.querySelectorAll('.market-chart').forEach(function (el) {
+    var series = JSON.parse(el.dataset.series || '[]');
+    if (!series.length) return;
+
+    var chart = LightweightCharts.createChart(el, {
+      autoSize: true,
+      layout: {
+        background: { type: 'solid', color: 'transparent' },
+        textColor: '#A3AED0',
+        fontFamily: 'DM Sans, sans-serif',
+        fontSize: 11,
+      },
+      grid: {
+        vertLines: { visible: false },
+        horzLines: { color: '#E9ECEF' },
+      },
+      rightPriceScale: { borderVisible: false },
+      timeScale: { borderVisible: false },
+      crosshair: {
+        vertLine: { color: '#A3AED0', width: 1, style: 3, labelBackgroundColor: '#4318FF' },
+        horzLine: { color: '#A3AED0', width: 1, style: 3, labelBackgroundColor: '#4318FF' },
+      },
+      handleScroll: false,
+      handleScale: false,
+    });
+
+    var area = chart.addAreaSeries({
+      lineColor: '#4318FF',
+      lineWidth: 2,
+      topColor: 'rgba(67, 24, 255, 0.18)',
+      bottomColor: 'rgba(67, 24, 255, 0.01)',
+      priceLineVisible: false,
+      lastValueVisible: false,
+    });
+    area.setData(series);
+    chart.timeScale().fitContent();
+  });
+})();
+</script>
+{% endblock %}
